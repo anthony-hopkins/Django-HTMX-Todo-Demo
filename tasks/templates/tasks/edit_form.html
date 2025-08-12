@@ -1,0 +1,98 @@
+<!-- =============================================================================
+     EDIT FORM TEMPLATE - This replaces the task item when editing
+     ============================================================================= -->
+<!-- 
+    This template is shown when someone clicks the edit button.
+    It temporarily replaces the task item with a form for editing.
+    
+    The form has:
+    1. A disabled checkbox (showing current completion status)
+    2. An input field with the current task text
+    3. Save and Cancel buttons
+-->
+
+<!-- 
+    We use the same <li> structure so the layout doesn't change.
+    The ID must match the original task item so HTMX can target it properly.
+-->
+<li class="task-item" id="task-{{ task.id }}">
+    
+    <!-- 
+        This form handles both displaying the edit interface and saving changes.
+        HTMX ATTRIBUTES EXPLAINED:
+        hx-post: When submitted, send a POST request to save the changes
+        hx-target: Update this specific task item with the response
+        hx-swap: Replace the entire task item with the updated version
+    -->
+    <form hx-post="{% url 'tasks:edit_task' task.id %}" 
+          hx-target="#task-{{ task.id }}" 
+          hx-swap="outerHTML"
+          style="display: flex; align-items: center; gap: 15px; width: 100%;">
+        
+        <!-- =============================================================================
+             DISABLED CHECKBOX - Shows current completion status
+             ============================================================================= -->
+        <!-- 
+            This checkbox is disabled (can't be clicked) during editing.
+            It just shows whether the task was complete or not.
+            We keep it visible so the layout doesn't jump around.
+        -->
+        <input type="checkbox" 
+               class="task-checkbox" 
+               {% if task.completed %}checked{% endif %}
+               disabled>
+        
+        <!-- =============================================================================
+             EDIT INPUT FIELD - Where the user types the new task text
+             ============================================================================= -->
+        <!-- 
+            This input field contains the current task text.
+            The user can modify it and submit the form.
+            
+            Django template syntax: value="{{ task.text }}" pre-fills the input
+            autofocus: Automatically puts the cursor in this field when the form appears
+        -->
+        <input type="text" 
+               name="task_text" 
+               value="{{ task.text }}"
+               class="form-input"
+               style="flex: 1; margin: 0;"
+               required
+               autofocus>
+        
+        <!-- =============================================================================
+             ACTION BUTTONS - Save changes or cancel editing
+             ============================================================================= -->
+        <div class="task-actions">
+            
+            <!-- SAVE BUTTON -->
+            <!-- 
+                This button submits the form to save the changes.
+                When clicked, it sends a POST request to the edit_task view.
+                The view will return the updated task item HTML.
+            -->
+            <button type="submit" class="btn btn-success btn-sm">
+                💾 Save
+            </button>
+            
+            <!-- CANCEL BUTTON -->
+            <!-- 
+                This button cancels editing and shows the original task item again.
+                
+                HTMX ATTRIBUTES EXPLAINED:
+                hx-get: Send a GET request to get the original task item
+                hx-target: Replace this edit form with the original task item
+                hx-swap: Replace the entire form
+                
+                Note: We use type="button" instead of type="submit" so it doesn't submit the form
+            -->
+            <button type="button" 
+                    class="btn btn-warning btn-sm"
+                    hx-get="{% url 'tasks:edit_task' task.id %}"
+                    hx-target="#task-{{ task.id }}"
+                    hx-swap="outerHTML">
+                ❌ Cancel
+            </button>
+        </div>
+    </form>
+</li>

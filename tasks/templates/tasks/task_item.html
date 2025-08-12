@@ -1,0 +1,81 @@
+<!-- =============================================================================
+     TASK ITEM TEMPLATE - This shows one individual task
+     ============================================================================= -->
+<!-- 
+    This template is included in the main page for each task.
+    The 'task' variable contains: {id, text, completed}
+    
+    Each task item has:
+    1. A checkbox to mark it complete/incomplete
+    2. The task text
+    3. Edit and delete buttons
+-->
+
+<!-- 
+    The <li> element represents one task item in the list.
+    We give it a unique ID so HTMX can target it specifically.
+    The 'completed' class is added conditionally for styling.
+-->
+<li class="task-item {% if task.completed %}completed{% endif %}" id="task-{{ task.id }}">
+    
+    <!-- =============================================================================
+         CHECKBOX - Clicking this toggles the task completion status
+         ============================================================================= -->
+    <!-- 
+        HTMX ATTRIBUTES EXPLAINED:
+        hx-post: When clicked, send a POST request to toggle the task
+        hx-target: Update this specific task item with the response
+        hx-swap: Replace the entire task item (outerHTML = the <li> element and everything inside it)
+    -->
+    <input type="checkbox" 
+           class="task-checkbox" 
+           {% if task.completed %}checked{% endif %}
+           hx-post="{% url 'tasks:toggle_task' task.id %}"
+           hx-target="#task-{{ task.id }}"
+           hx-swap="outerHTML">
+    
+    <!-- =============================================================================
+         TASK TEXT - Shows what the task is about
+         ============================================================================= -->
+    <!-- 
+        Django template syntax: {{ task.text }} displays the actual task text.
+        The styling will automatically add strikethrough if the task is completed.
+    -->
+    <span class="task-text">{{ task.text }}</span>
+    
+    <!-- =============================================================================
+         ACTION BUTTONS - Edit and delete the task
+         ============================================================================= -->
+    <div class="task-actions">
+        
+        <!-- EDIT BUTTON -->
+        <!-- 
+            HTMX ATTRIBUTES EXPLAINED:
+            hx-get: When clicked, send a GET request to show the edit form
+            hx-target: Replace this task item with the edit form
+            hx-swap: Replace the entire task item
+        -->
+        <button class="btn btn-warning btn-sm"
+                hx-get="{% url 'tasks:edit_task' task.id %}"
+                hx-target="#task-{{ task.id }}"
+                hx-swap="outerHTML">
+            ✏️ Edit
+        </button>
+        
+        <!-- DELETE BUTTON -->
+        <!-- 
+            HTMX ATTRIBUTES EXPLAINED:
+            hx-post: When clicked, send a POST request to delete the task
+            hx-target: Target this task item
+            hx-swap: Replace with the response (which is empty, so it disappears)
+            hx-confirm: Show a confirmation dialog before deleting
+        -->
+        <button class="btn btn-danger btn-sm"
+                hx-post="{% url 'tasks:delete_task' task.id %}"
+                hx-target="#task-{{ task.id }}"
+                hx-swap="outerHTML"
+                hx-confirm="Are you sure you want to delete this task?">
+            🗑️ Delete
+        </button>
+    </div>
+</li>

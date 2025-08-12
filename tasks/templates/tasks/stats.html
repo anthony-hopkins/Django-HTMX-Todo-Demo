@@ -1,0 +1,75 @@
+<!-- =============================================================================
+     STATISTICS TEMPLATE - Shows task counts and gets updated dynamically
+     ============================================================================= -->
+<!-- 
+    This template shows the statistics section with:
+    1. Total number of tasks
+    2. Number of completed tasks  
+    3. Number of pending tasks
+    
+    IMPORTANT: This template is used in two ways:
+    1. Initially loaded on the main page
+    2. Fetched via AJAX to update the stats without refreshing the page
+-->
+
+<!-- 
+    The container div with the 'stats' class.
+    This ID is important because the JavaScript uses it to update the stats.
+    
+    Note: The CSS classes ensure this maintains the proper layout and doesn't shrink.
+-->
+<div class="stats" id="stats-section">
+    
+    <!-- =============================================================================
+         TOTAL TASKS - Shows how many tasks exist
+         ============================================================================= -->
+    <div class="stat-item">
+        <!-- 
+            Django template syntax: {{ tasks|length }} counts the total number of tasks
+            The 'tasks' variable is passed from the view function
+            The '|length' filter counts the items in the list
+        -->
+        <div class="stat-number" id="total-tasks">{{ tasks|length }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    
+    <!-- =============================================================================
+         COMPLETED TASKS - Shows how many tasks are done
+         ============================================================================= -->
+    <div class="stat-item">
+        <!-- 
+            Django template syntax: {{ tasks|length|add:"-1" }}
+            This is a temporary calculation - in a real app, you'd count completed tasks properly
+            
+            For now, it just shows total - 1 as a placeholder
+            The JavaScript will update this number dynamically
+        -->
+        <div class="stat-number" id="completed-tasks">{{ tasks|length|add:"-1" }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    
+    <!-- =============================================================================
+         PENDING TASKS - Shows how many tasks are still to do
+         ============================================================================= -->
+    <div class="stat-item">
+        <!-- 
+            This is hardcoded to 1 for now as a placeholder.
+            In a real app, you'd calculate: total - completed
+            The JavaScript will update this number dynamically
+        -->
+        <div class="stat-number" id="pending-tasks">1</div>
+        <div class="stat-label">Pending</div>
+    </div>
+</div>
+
+<!-- 
+    HOW THIS TEMPLATE GETS UPDATED:
+    
+    1. When the page first loads, Django renders this with the current task data
+    2. When someone adds/edits/deletes a task, HTMX makes a request to the server
+    3. After the HTMX request completes, JavaScript runs and fetches fresh stats
+    4. The JavaScript updates only the numbers, preserving the layout
+    
+    This approach prevents the container from shrinking because we never replace
+    the entire stats section - just update the individual numbers.
+-->

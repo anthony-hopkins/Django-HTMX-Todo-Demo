@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Task Manager</title>
+    
+    <!-- =============================================================================
+         HTMX LIBRARY - This is the magic that makes everything dynamic!
+         ============================================================================= -->
+    <!-- HTMX is a JavaScript library that lets you make AJAX requests without writing JavaScript -->
+    <!-- It adds special HTML attributes that automatically handle form submissions, clicks, etc. -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- =============================================================================
+         CSS STYLES - This makes our app look professional and modern
+         ============================================================================= -->
+    <style>
+        /* Reset default browser styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Main page background - creates a beautiful gradient */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Main container - holds all our content in a white card */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;  /* Center the container horizontally */
+            background: white;
+            border-radius: 20px;  /* Rounded corners */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);  /* Drop shadow for depth */
+            overflow: hidden;  /* Hide anything that goes outside the rounded corners */
+        }
+
+        /* Header section - the dark blue banner at the top */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Main content area - everything below the header */
+        .content {
+            padding: 40px;
+        }
+
+        /* Form for adding new tasks */
+        .add-task-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        /* Container for the input field and button */
+        .form-group {
+            display: flex;  /* Makes the input and button sit side by side */
+            gap: 15px;      /* Space between the input and button */
+            align-items: center;
+        }
+
+        /* The text input field */
+        .form-input {
+            flex: 1;        /* Takes up all available space */
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;  /* Smooth animation when focusing */
+        }
+
+        /* What happens when the input field is focused (clicked on) */
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;  /* Changes border color to blue */
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);  /* Adds a blue glow */
+        }
+
+        /* Button styles - all buttons share these basic styles */
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;  /* Smooth animation on hover */
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Primary button - used for the main action (Add Task) */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* What happens when you hover over the primary button */
+        .btn-primary:hover {
+            transform: translateY(-2px);  /* Button moves up slightly */
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);  /* Adds shadow */
+        }
+
+        /* Success button - used for saving/confirming actions */
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        /* Danger button - used for destructive actions like delete */
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        /* Warning button - used for edit actions */
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        /* Small button - used for actions within task items */
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Container for the list of tasks */
+        .tasks-list {
+            list-style: none;  /* Removes the bullet points */
+        }
+
+        /* Individual task item */
+        .task-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;  /* Smooth animation on hover */
+            display: flex;  /* Makes the checkbox, text, and buttons sit in a row */
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* What happens when you hover over a task item */
+        .task-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);  /* Item moves up slightly */
+        }
+
+        /* Completed tasks get a different style */
+        .task-item.completed {
+            border-color: #56ab2f;  /* Green border */
+            background: #f8fff9;    /* Light green background */
+        }
+
+        /* The checkbox for marking tasks complete */
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #56ab2f;  /* Makes the checkbox green when checked */
+            cursor: pointer;
+        }
+
+        /* The task text */
+        .task-text {
+            flex: 1;  /* Takes up all available space */
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        /* Completed tasks get strikethrough text */
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #7f8c8d;
+        }
+
+        /* Container for the edit and delete buttons */
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Statistics section - shows task counts */
+        .stats {
+            display: flex !important;  /* !important ensures this doesn't get overridden */
+            justify-content: space-between !important;  /* Spreads items evenly */
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+            min-height: 80px;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Individual statistic item */
+        .stat-item {
+            text-align: center;
+            flex: 1 1 0 !important;  /* Takes equal space, won't shrink below 0 */
+            min-width: 0;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        /* The number in each statistic */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* The label below each number */
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            white-space: nowrap;  /* Prevents text from wrapping */
+            overflow: hidden;     /* Hides text that's too long */
+            text-overflow: ellipsis;  /* Shows ... for text that's cut off */
+        }
+
+        /* What to show when there are no tasks */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        /* Animation for new tasks appearing */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-item {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- =============================================================================
+         MAIN PAGE STRUCTURE
+         ============================================================================= -->
+    <div class="container">
+        <!-- Header with title and description -->
+        <div class="header">
+            <h1>🚀 DevOps Task Manager</h1>
+            <p>Streamline your workflow with modern HTMX-powered task management</p>
+        </div>
+
+        <div class="content">
+            <!-- =============================================================================
+                 ADD TASK FORM - This is where HTMX magic starts!
+                 ============================================================================= -->
+            <div class="add-task-form">
+                <!-- 
+                    HTMX ATTRIBUTES EXPLAINED:
+                    hx-post: When the form is submitted, send a POST request to this URL
+                    hx-target: Put the response from the server into this element
+                    hx-swap: How to insert the response (beforeend = add to the end of the list)
+                -->
+                <form hx-post="{% url 'tasks:add_task' %}" 
+                      hx-target="#tasks-list" 
+                      hx-swap="beforeend">
+                    <div class="form-group">
+                        <input type="text" 
+                               name="task_text" 
+                               class="form-input" 
+                               placeholder="What needs to be done today?"
+                               required>
+                        <button type="submit" class="btn btn-primary">Add Task</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- =============================================================================
+                 STATISTICS SECTION - Shows task counts
+                 ============================================================================= -->
+            <div id="stats-section" class="stats">
+                <div class="stat-item">
+                    <!-- Django template syntax: {{ tasks|length }} gets the number of tasks -->
+                    <div class="stat-number" id="total-tasks">{{ tasks|length }}</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="completed-tasks">{{ tasks|length|add:"-1" }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="pending-tasks">1</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+
+            <!-- =============================================================================
+                 TASKS LIST - This is where all the tasks are displayed
+                 ============================================================================= -->
+            <ul id="tasks-list" class="tasks-list">
+                <!-- Django template syntax: loop through all tasks -->
+                {% for task in tasks %}
+                    <!-- Include the task_item.html template for each task -->
+                    {% include 'tasks/task_item.html' with task=task %}
+                {% empty %}
+                    <!-- Show this message if there are no tasks -->
+                    <div class="empty-state">
+                        <h3>🎯 No tasks yet!</h3>
+                        <p>Add your first task above to get started.</p>
+                    </div>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <!-- =============================================================================
+         JAVASCRIPT - This handles updating the statistics after HTMX operations
+         ============================================================================= -->
+    <script>
+        // This code runs after every HTMX request completes
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            // Only update stats if the request was successful and affected tasks
+            if (evt.detail.successful && 
+                (evt.detail.xhr.responseURL.includes('add') || 
+                 evt.detail.xhr.responseURL.includes('toggle') || 
+                 evt.detail.xhr.responseURL.includes('delete') || 
+                 evt.detail.xhr.responseURL.includes('edit'))) {
+                
+                // Fetch the updated statistics from the server
+                fetch('{% url "tasks:get_stats" %}')
+                    .then(response => response.text())
+                    .then(html => {
+                        // Create a temporary div to parse the HTML response
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        
+                        // Extract the numbers from the response
+                        const totalTasks = tempDiv.querySelector('#total-tasks');
+                        const completedTasks = tempDiv.querySelector('#completed-tasks');
+                        const pendingTasks = tempDiv.querySelector('#pending-tasks');
+                        
+                        // Update only the numbers, preserving the layout
+                        if (totalTasks) {
+                            document.getElementById('total-tasks').textContent = totalTasks.textContent;
+                        }
+                        if (completedTasks) {
+                            document.getElementById('completed-tasks').textContent = completedTasks.textContent;
+                        }
+                        if (pendingTasks) {
+                            document.getElementById('pending-tasks').textContent = pendingTasks.textContent;
+                        }
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
