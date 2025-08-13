@@ -415,10 +415,16 @@ deploy/
 deployment/
 *.deploy
 
-# Server configuration
-nginx.conf
+# Server configuration (generic)
+# nginx.conf  # Commented out - we need this for our Docker setup
 apache.conf
 *.conf
+
+# Allow our nginx configuration files
+!nginx/
+!nginx/*.conf
+!nginx/conf.d/
+!nginx/conf.d/*.conf
 
 # =============================================================================
 # BACKUP AND ARCHIVE FILES

@@ -260,6 +260,139 @@ The app uses modern CSS features:
 - **Problem**: Django server gives errors
 - **Solution**: Make sure you're in the right directory and virtual environment is activated
 
+## 🐳 Docker Deployment
+
+This project includes Docker configuration for easy deployment and production use. The Docker setup provides a production-ready environment with Nginx, Gunicorn, and proper security configurations.
+
+### 🚀 Quick Docker Start
+
+1. **Build and Run Containers:**
+   ```bash
+   # Build the Docker images
+   sudo docker-compose build
+   
+   # Start the services
+   sudo docker-compose up -d
+   
+   # Check status
+   sudo docker-compose ps
+   ```
+
+2. **Access Your Application:**
+   - **Main App**: http://localhost:80/
+   - **HTTPS**: http://localhost:443/ (when SSL is configured)
+
+3. **Stop Services:**
+   ```bash
+   sudo docker-compose down
+   ```
+
+### 🏗️ Docker Architecture
+
+The project uses a multi-container setup:
+
+- **`web` Service**: Django application running with Gunicorn
+- **`nginx` Service**: Reverse proxy and static file server
+- **Optional Services**: PostgreSQL and Redis (commented out by default)
+
+### 📁 Docker Files
+
+- **`Dockerfile`**: Defines the Django application container
+- **`docker-compose.yml`**: Orchestrates all services
+- **`nginx/`**: Nginx configuration files
+- **`requirements.txt`**: Python dependencies for production
+
+### 🔧 Production Features
+
+- **WSGI Server**: Gunicorn with multiple workers
+- **Static Files**: Collected and served by Nginx
+- **Security Headers**: XSS protection, CSRF, content type validation
+- **Rate Limiting**: API and login endpoint protection
+- **Health Checks**: Container health monitoring
+- **Non-root User**: Security best practices
+
+### 🌍 Environment Configuration
+
+1. **Create Environment File:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your production values
+   ```
+
+2. **Key Environment Variables:**
+   ```bash
+   DJANGO_SECRET_KEY=your-secret-key-here
+   DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+   DJANGO_DEBUG=False
+   ```
+
+### 📊 Monitoring and Logs
+
+- **View Logs:**
+   ```bash
+   sudo docker-compose logs web      # Django application logs
+   sudo docker-compose logs nginx    # Nginx access/error logs
+   ```
+
+- **Health Checks:**
+   ```bash
+   sudo docker-compose ps            # Container status
+   curl http://localhost/health/     # Health endpoint
+   ```
+
+### 🔒 Security Features
+
+- **Rate Limiting**: Prevents abuse of API endpoints
+- **Security Headers**: XSS, CSRF, and content type protection
+- **Non-root Containers**: Runs as unprivileged user
+- **Input Validation**: Client and server-side validation
+- **HTTPS Ready**: Configured for SSL/TLS (add certificates)
+
+### 🚀 Scaling and Production
+
+1. **Enable Database:**
+   ```bash
+   # Uncomment PostgreSQL service in docker-compose.yml
+   # Uncomment Redis service for caching
+   ```
+
+2. **SSL/HTTPS Setup:**
+   ```bash
+   # Add SSL certificates to nginx/ssl/
+   # Uncomment HTTPS configuration in nginx/conf.d/default.conf
+   ```
+
+3. **Load Balancing:**
+   ```bash
+   # Scale web service for multiple Django instances
+   sudo docker-compose up -d --scale web=3
+   ```
+
+### 🛠️ Troubleshooting
+
+- **Container Won't Start**: Check logs with `sudo docker-compose logs`
+- **Permission Errors**: Ensure Docker daemon is running and user has permissions
+- **Port Conflicts**: Change ports in `docker-compose.yml` if 80/443 are in use
+- **Static Files Missing**: Rebuild with `sudo docker-compose build --no-cache`
+
+### 📚 Docker Commands Reference
+
+```bash
+# Build and run
+sudo docker-compose build          # Build images
+sudo docker-compose up -d          # Start services
+sudo docker-compose down           # Stop services
+
+# Management
+sudo docker-compose ps             # Show status
+sudo docker-compose logs           # View logs
+sudo docker-compose restart        # Restart services
+
+# Development
+sudo docker-compose exec web bash  # Access Django container
+sudo docker-compose exec nginx sh  # Access Nginx container
+```
+
 ## 🤝 Contributing
 
 This is a learning project, but contributions are welcome! Here's how you can help:
