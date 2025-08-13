@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>DevOps Task Manager</title>
     
     <!-- =============================================================================
@@ -299,6 +300,7 @@
                 <form hx-post="{% url 'tasks:add_task' %}" 
                       hx-target="#tasks-list" 
                       hx-swap="beforeend">
+                    {% csrf_token %}
                     <div class="form-group">
                         <input type="text" 
                                name="task_text" 
@@ -349,9 +351,18 @@
     </div>
     
     <!-- =============================================================================
-         JAVASCRIPT - This handles updating the statistics after HTMX operations
+         JAVASCRIPT - This handles CSRF tokens and updating statistics after HTMX operations
          ============================================================================= -->
     <script>
+        // Configure HTMX to automatically include CSRF tokens in all requests
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            // Get the CSRF token from the meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Add the CSRF token to all HTMX requests
+            evt.detail.headers['X-CSRFToken'] = csrfToken;
+        });
+        
         // This code runs after every HTMX request completes
         document.body.addEventListener('htmx:afterRequest', function(evt) {
             // Only update stats if the request was successful and affected tasks

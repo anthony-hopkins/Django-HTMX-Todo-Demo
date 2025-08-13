@@ -210,9 +210,9 @@ The app uses modern CSS features:
 - This is just for learning HTMX concepts
 
 ### 2. **Security**
-- I use `@csrf_exempt` to disable CSRF protection for simplicity
-- **Never do this in production!** It's a security risk
-- This is just for learning purposes
+- CSRF protection is enabled by default for all forms
+- All HTMX requests include CSRF tokens automatically
+- This follows Django security best practices
 
 ### 3. **Error Handling**
 - This demo has minimal error handling

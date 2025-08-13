@@ -1,7 +1,7 @@
 # Import the necessary Django modules
 from django.shortcuts import render  # For rendering HTML templates
 from django.http import HttpResponse  # For sending HTTP responses
-from django.views.decorators.csrf import csrf_exempt  # Disables CSRF protection for this demo (not recommended for production)
+
 import json  # For handling JSON data (though we're not using it much in this simple example)
 
 # =============================================================================
@@ -38,7 +38,6 @@ def index(request):
     # 3. a dictionary of data to pass to the template
     return render(request, 'tasks/index.html', {'tasks': tasks_list})
 
-@csrf_exempt  # This decorator disables CSRF protection (not safe for production!)
 def add_task(request):
     """
     This function handles adding new tasks via HTMX.
@@ -77,7 +76,6 @@ def add_task(request):
     # If it's not a POST request or no text was provided, return nothing
     return HttpResponse("")
 
-@csrf_exempt
 def toggle_task(request, task_id):
     """
     This function toggles a task between completed and incomplete.
@@ -97,7 +95,6 @@ def toggle_task(request, task_id):
     # If no task was found, return nothing
     return HttpResponse("")
 
-@csrf_exempt
 def delete_task(request, task_id):
     """
     This function deletes a task.
@@ -116,7 +113,6 @@ def delete_task(request, task_id):
     # HTMX will effectively remove that element from the page
     return HttpResponse("")
 
-@csrf_exempt
 def edit_task(request, task_id):
     """
     This function handles editing tasks.
