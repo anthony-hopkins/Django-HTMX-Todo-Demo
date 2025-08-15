@@ -20,6 +20,25 @@ tasks_list = [
 next_id = 4
 
 # =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def get_task_stats():
+    """
+    Calculate and return task statistics.
+    Returns a dictionary with total, completed, and pending task counts.
+    """
+    total = len(tasks_list)
+    completed = sum(1 for task in tasks_list if task["completed"])
+    pending = total - completed
+    
+    return {
+        'total': total,
+        'completed': completed,
+        'pending': pending
+    }
+
+# =============================================================================
 # VIEW FUNCTIONS - These handle HTTP requests and return responses
 # =============================================================================
 
@@ -32,11 +51,17 @@ def index(request):
     
     This function renders the 'index.html' template and passes the tasks list to it.
     """
+    # Get current stats to pass to the template
+    stats = get_task_stats()
+    
     # 'render' takes 3 arguments:
     # 1. the request object
     # 2. the template name (looks in tasks/templates/tasks/index.html)
     # 3. a dictionary of data to pass to the template
-    return render(request, 'tasks/index.html', {'tasks': tasks_list})
+    return render(request, 'tasks/index.html', {
+        'tasks': tasks_list,
+        'stats': stats
+    })
 
 def add_task(request):
     """
@@ -71,7 +96,10 @@ def add_task(request):
             
             # Return the HTML for just the new task item
             # HTMX will insert this into the page without refreshing
-            return render(request, 'tasks/task_item.html', {'task': new_task})
+            # Also include a trigger to update the stats section
+            response = render(request, 'tasks/task_item.html', {'task': new_task})
+            response['HX-Trigger'] = 'stats-updated'
+            return response
     
     # If it's not a POST request or no text was provided, return nothing
     return HttpResponse("")
@@ -90,7 +118,10 @@ def toggle_task(request, task_id):
             task["completed"] = not task["completed"]
             
             # Return the updated task HTML so HTMX can update the page
-            return render(request, 'tasks/task_item.html', {'task': task})
+            # Also include a trigger to update the stats section
+            response = render(request, 'tasks/task_item.html', {'task': task})
+            response['HX-Trigger'] = 'stats-updated'
+            return response
     
     # If no task was found, return nothing
     return HttpResponse("")
@@ -108,10 +139,10 @@ def delete_task(request, task_id):
     # This creates a new list with all tasks EXCEPT the one we want to delete
     tasks_list = [task for task in tasks_list if task["id"] != task_id]
     
-    # Return an empty response
-    # Since we're targeting the task item with hx-target, and returning nothing,
-    # HTMX will effectively remove that element from the page
-    return HttpResponse("")
+    # Return an empty response with a trigger to update the stats section
+    response = HttpResponse("")
+    response['HX-Trigger'] = 'stats-updated'
+    return response
 
 def edit_task(request, task_id):
     """
@@ -143,7 +174,10 @@ def edit_task(request, task_id):
                     task["text"] = new_text  # Update the text
                     
                     # Return the updated task item HTML
-                    return render(request, 'tasks/task_item.html', {'task': task})
+                    # Also include a trigger to update the stats section
+                    response = render(request, 'tasks/task_item.html', {'task': task})
+                    response['HX-Trigger'] = 'stats-updated'
+                    return response
     
     # If we get here, something went wrong - return nothing
     return HttpResponse("")
@@ -155,5 +189,11 @@ def get_stats(request):
     Instead of updating the entire page, HTMX can update just one part.
     This function returns only the stats HTML, which gets inserted into the page.
     """
-    # Return just the stats template with the current task data
-    return render(request, 'tasks/stats.html', {'tasks': tasks_list})
+    # Get current stats
+    stats = get_task_stats()
+    
+    # Return just the stats template with the current task data and stats
+    return render(request, 'tasks/stats.html', {
+        'tasks': tasks_list,
+        'stats': stats
+    })

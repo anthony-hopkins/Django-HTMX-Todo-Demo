@@ -26,13 +26,15 @@
         hx-post: When clicked, send a POST request to toggle the task
         hx-target: Update this specific task item with the response
         hx-swap: Replace the entire task item (outerHTML = the <li> element and everything inside it)
+        hx-trigger: When to trigger the request (change = when checkbox state changes)
     -->
     <input type="checkbox" 
            class="task-checkbox" 
            {% if task.completed %}checked{% endif %}
            hx-post="{% url 'tasks:toggle_task' task.id %}"
            hx-target="#task-{{ task.id }}"
-           hx-swap="outerHTML">
+           hx-swap="outerHTML"
+           hx-trigger="change">
     
     <!-- =============================================================================
          TASK TEXT - Shows what the task is about

@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>DevOps Task Manager</title>
     
     <!-- =============================================================================
@@ -296,10 +295,12 @@
                     hx-post: When the form is submitted, send a POST request to this URL
                     hx-target: Put the response from the server into this element
                     hx-swap: How to insert the response (beforeend = add to the end of the list)
+                    hx-trigger: When to trigger the request (submit = when form is submitted)
                 -->
                 <form hx-post="{% url 'tasks:add_task' %}" 
                       hx-target="#tasks-list" 
-                      hx-swap="beforeend">
+                      hx-swap="beforeend"
+                      hx-trigger="submit">
                     {% csrf_token %}
                     <div class="form-group">
                         <input type="text" 
@@ -315,18 +316,21 @@
             <!-- =============================================================================
                  STATISTICS SECTION - Shows task counts
                  ============================================================================= -->
-            <div id="stats-section" class="stats">
+            <div id="stats-section" class="stats"
+                 hx-get="{% url 'tasks:get_stats' %}"
+                 hx-trigger="stats-updated from:body"
+                 hx-swap="innerHTML">
                 <div class="stat-item">
-                    <!-- Django template syntax: {{ tasks|length }} gets the number of tasks -->
-                    <div class="stat-number" id="total-tasks">{{ tasks|length }}</div>
+                    <!-- Django template syntax: {{ stats.total }} gets the total number of tasks -->
+                    <div class="stat-number" id="total-tasks">{{ stats.total }}</div>
                     <div class="stat-label">Total Tasks</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="completed-tasks">{{ tasks|length|add:"-1" }}</div>
+                    <div class="stat-number" id="completed-tasks">{{ stats.completed }}</div>
                     <div class="stat-label">Completed</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="pending-tasks">1</div>
+                    <div class="stat-number" id="pending-tasks">{{ stats.pending }}</div>
                     <div class="stat-label">Pending</div>
                 </div>
             </div>
@@ -349,55 +353,5 @@
             </ul>
         </div>
     </div>
-    
-    <!-- =============================================================================
-         JAVASCRIPT - This handles CSRF tokens and updating statistics after HTMX operations
-         ============================================================================= -->
-    <script>
-        // Configure HTMX to automatically include CSRF tokens in all requests
-        document.body.addEventListener('htmx:configRequest', function(evt) {
-            // Get the CSRF token from the meta tag
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            // Add the CSRF token to all HTMX requests
-            evt.detail.headers['X-CSRFToken'] = csrfToken;
-        });
-        
-        // This code runs after every HTMX request completes
-        document.body.addEventListener('htmx:afterRequest', function(evt) {
-            // Only update stats if the request was successful and affected tasks
-            if (evt.detail.successful && 
-                (evt.detail.xhr.responseURL.includes('add') || 
-                 evt.detail.xhr.responseURL.includes('toggle') || 
-                 evt.detail.xhr.responseURL.includes('delete') || 
-                 evt.detail.xhr.responseURL.includes('edit'))) {
-                
-                // Fetch the updated statistics from the server
-                fetch('{% url "tasks:get_stats" %}')
-                    .then(response => response.text())
-                    .then(html => {
-                        // Create a temporary div to parse the HTML response
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = html;
-                        
-                        // Extract the numbers from the response
-                        const totalTasks = tempDiv.querySelector('#total-tasks');
-                        const completedTasks = tempDiv.querySelector('#completed-tasks');
-                        const pendingTasks = tempDiv.querySelector('#pending-tasks');
-                        
-                        // Update only the numbers, preserving the layout
-                        if (totalTasks) {
-                            document.getElementById('total-tasks').textContent = totalTasks.textContent;
-                        }
-                        if (completedTasks) {
-                            document.getElementById('completed-tasks').textContent = completedTasks.textContent;
-                        }
-                        if (pendingTasks) {
-                            document.getElementById('pending-tasks').textContent = pendingTasks.textContent;
-                        }
-                    });
-            }
-        });
-    </script>
 </body>
 </html>

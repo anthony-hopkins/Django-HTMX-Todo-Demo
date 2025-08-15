@@ -25,11 +25,10 @@
          ============================================================================= -->
     <div class="stat-item">
         <!-- 
-            Django template syntax: {{ tasks|length }} counts the total number of tasks
-            The 'tasks' variable is passed from the view function
-            The '|length' filter counts the items in the list
+            Django template syntax: {{ stats.total }} gets the total number of tasks
+            The 'stats' variable is passed from the view function
         -->
-        <div class="stat-number" id="total-tasks">{{ tasks|length }}</div>
+        <div class="stat-number" id="total-tasks">{{ stats.total }}</div>
         <div class="stat-label">Total Tasks</div>
     </div>
     
@@ -38,13 +37,10 @@
          ============================================================================= -->
     <div class="stat-item">
         <!-- 
-            Django template syntax: {{ tasks|length|add:"-1" }}
-            This is a temporary calculation - in a real app, you'd count completed tasks properly
-            
-            For now, it just shows total - 1 as a placeholder
-            The JavaScript will update this number dynamically
+            Django template syntax: {{ stats.completed }}
+            This gets the actual count of completed tasks from the view
         -->
-        <div class="stat-number" id="completed-tasks">{{ tasks|length|add:"-1" }}</div>
+        <div class="stat-number" id="completed-tasks">{{ stats.completed }}</div>
         <div class="stat-label">Completed</div>
     </div>
     
@@ -53,11 +49,10 @@
          ============================================================================= -->
     <div class="stat-item">
         <!-- 
-            This is hardcoded to 1 for now as a placeholder.
-            In a real app, you'd calculate: total - completed
-            The JavaScript will update this number dynamically
+            Django template syntax: {{ stats.pending }}
+            This gets the actual count of pending tasks from the view
         -->
-        <div class="stat-number" id="pending-tasks">1</div>
+        <div class="stat-number" id="pending-tasks">{{ stats.pending }}</div>
         <div class="stat-label">Pending</div>
     </div>
 </div>
